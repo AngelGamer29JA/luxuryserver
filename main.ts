@@ -1,4 +1,6 @@
 import { Application, Router, send } from "https://deno.land/x/oak@14.2.0/mod.ts";
+import { join } from "https://deno.land/std@0.220.1/path/mod.ts";
+
 const app = new Application({ logErrors: false });
 const router = new Router();
 const clients: WebSocket[] = [];
@@ -17,8 +19,8 @@ router.get("/wss", (ctx) => {
     }
 
     ws.onmessage = (data) => {
-        console.log(data.toString())
-        broadcast(data.toString(), ws)
+        console.log(data.data.toString())
+        broadcast(data.data, ws)
     }
 
     ws.onclose = () => {
@@ -36,10 +38,22 @@ function broadcast(message: string, sender: WebSocket) {
 console.log("Server listen at %s", PORT)
 app.use(router.routes());
 app.use(router.allowedMethods());
+
 app.use(async (ctx) => {
-    await send(ctx, ctx.request.url.pathname, {
-        root: `${Deno.cwd()}/dist`,
-        index: "./index.html"
-    });
-})
+    try {
+        let pathname = ctx.request.url.pathname;
+        if (pathname === "/controller") {
+            pathname = "/"
+        }
+        const filePath = join(Deno.cwd(), "dist");
+        await send(ctx, pathname, {
+            root: filePath,
+            index: "index.html"
+        });
+    } catch (e) {
+        console.log(e)
+    }
+});
+
+
 app.listen({ port: PORT });
