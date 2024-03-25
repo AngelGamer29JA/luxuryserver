@@ -1,0 +1,27 @@
+{
+  "version": "3",
+  "packages": {
+    "specifiers": {
+      "npm:@types/node": "npm:@types/node@18.16.19",
+      "npm:ws": "npm:ws@8.16.0"
+    },
+    "npm": {
+      "@types/node@18.16.19": {
+        "integrity": "sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==",
+        "dependencies": {}
+      },
+      "ws@8.16.0": {
+        "integrity": "sha512-HS0c//TP7Ina87TfiPUz1rQzMhHrl/SG2guqRcTOIUYD2q8uhUdNHZYJUaQ8aTGPzCh+c6oawMKW35nFl1dxyQ==",
+        "dependencies": {}
+      }
+    }
+  },
+  "remote": {},
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@types/node@^20.11.30"
+      ]
+    }
+  }
+}
