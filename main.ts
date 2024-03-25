@@ -1,27 +1,45 @@
-// @deno-types="npm:@types/ws"
-import WebSocket, { WebSocketServer } from "npm:ws"
+import { Application, Router, send } from "https://deno.land/x/oak@14.2.0/mod.ts";
+const app = new Application({ logErrors: false });
+const router = new Router();
+const clients: WebSocket[] = [];
 
-const wss = new WebSocketServer({
-  port: 3500
-}, () => {
-  console.log("Listen to :3500")
-})
+const PORT = 8000;
 
-wss.on("connection", (client) => {
-  console.log("New client connected %s");
-  
-  client.on("open", () => {
-    console.log("New client connected %s");
-  })
+router.get("/wss", (ctx) => {
+    if (!ctx.isUpgradable) {
+        ctx.throw(501);
+    }
+    const ws = ctx.upgrade();
 
-  client.on("message", (data) => {
-    console.log(data.toString())
-    broadcast(data.toString(), client)
-  })
-})
+    ws.onopen = () => {
+        console.log("New client connected");
+        clients.push(ws);
+    }
+
+    ws.onmessage = (data) => {
+        console.log(data.toString())
+        broadcast(data.toString(), ws)
+    }
+
+    ws.onclose = () => {
+        clients.splice(clients.indexOf(ws), 1);
+    }
+
+});
 
 function broadcast(message: string, sender: WebSocket) {
-  for (const client of wss.clients) {
-    if (sender !== client) client.send(message)
-  }
+    for (const client of clients) {
+        if (sender !== client) client.send(message)
+    }
 }
+
+console.log("Server listen at %s", PORT)
+app.use(router.routes());
+app.use(router.allowedMethods());
+app.use(async (ctx) => {
+    await send(ctx, ctx.request.url.pathname, {
+        root: `${Deno.cwd()}/dist`,
+        index: "./index.html"
+    });
+})
+app.listen({ port: PORT });
